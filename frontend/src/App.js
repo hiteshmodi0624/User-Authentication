@@ -2,11 +2,6 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
 import EditEventPage from './pages/EditEvent';
 import ErrorPage from './pages/Error';
-import EventDetailPage, {
-  loader as eventDetailLoader,
-  action as deleteEventAction,
-} from './pages/EventDetail';
-import EventsPage, { loader as eventsLoader } from './pages/Events';
 import EventsRootLayout from './pages/EventsRoot';
 import HomePage from './pages/Home';
 import NewEventPage from './pages/NewEvent';
@@ -17,6 +12,11 @@ import AuthenticationPage from './pages/Authentication';
 import { action as authAction } from './pages/Authentication';
 import { action as logout } from './components/Logout';
 import { tokenLoader,checkAuthLoader } from './util/auth';
+import { lazy, Suspense } from 'react';
+import  { loader as eventDetailLoader,action as deleteEventAction } from './pages/EventDetail';
+
+const EventsPage=lazy(()=>import('./pages/Events'))
+const EventDetailPage=lazy(()=>import('./pages/EventDetail'))
 const router = createBrowserRouter([
   {
     path: '/',
@@ -32,8 +32,8 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <EventsPage />,
-            loader: eventsLoader,
+            element: <Suspense fallback=<p>Loading...</p>><EventsPage /></Suspense>,
+            loader: ()=>import('./pages/Events').then(module=>module.loader()),
           },
           {
             path: ':eventId',
@@ -42,7 +42,7 @@ const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: <EventDetailPage />,
+                element: <Suspense fallback=<p>Loading...</p>><EventDetailPage /></Suspense>,
                 action: deleteEventAction,
               },
               {
